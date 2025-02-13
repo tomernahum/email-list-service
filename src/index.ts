@@ -29,6 +29,14 @@ app.post("/add-new-email", async (c) => {
         return c.text("Missing or email or turnstileToken", 400);
     }
 
+    // validate email
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!re.test(email)) {
+        console.log("email is not valid", { email, turnstileToken });
+        return c.text("email is not valid", 400);
+    }
+
+    // validate turstile
     if (!(await validateTurnstileToken(turnstileToken))) {
         console.log("captcha failed", { email, turnstileToken });
         return c.text("Turnstile captcha was invalid/failed", 401);
