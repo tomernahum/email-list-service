@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+    <form onsubmit="handleSubmit(event)">
+        <label for="email">Email:</label>
+        <input type="text" name="email" id="email">
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAA8kcALKDe_QHw5b" data-callback="handleTurnstileCallback"></div>
+        <input type="submit" value="Submit">
+    </form>
+    <script>
+        let turnstileToken;
+        function handleTurnstileCallback(token) {
+            console.log("TURNSTYLE PASSED",token)
+            turnstileToken = token;
+        }
+        function handleSubmit(event) {
+            event.preventDefault()
+
+            const email = document.getElementById('email').value
+
+            fetch('http://localhost:3000/add-new-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email,
+                    turnstileToken
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data)
+            })
+        }
+    </script>
+</body>
+</html>
