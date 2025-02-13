@@ -1,6 +1,7 @@
 // runs on server
+// functions here called by api endpoints handled in index.ts
 
-function addNewEmail() {
+export function addNewEmail(email: string) {
     // verify the captcha was passed
     // add the email to our db
     // send welcome email

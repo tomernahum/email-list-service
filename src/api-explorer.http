@@ -1,0 +1,10 @@
+
+### 
+POST http://localhost:3000/add-new-email HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "test@test.com",
+    "turnstileToken": "must be a valid token generated from the turnstile widget on the frontend"
+}
+

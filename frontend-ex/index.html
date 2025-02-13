@@ -1,44 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-</head>
-<body>
-    <form onsubmit="handleSubmit(event)">
-        <label for="email">Email:</label>
-        <input type="text" name="email" id="email">
-        <div class="cf-turnstile" data-sitekey="0x4AAAAAAA8kcALKDe_QHw5b" data-callback="handleTurnstileCallback"></div>
-        <input type="submit" value="Submit">
-    </form>
-    <script>
-        let turnstileToken;
-        function handleTurnstileCallback(token) {
-            console.log("TURNSTYLE PASSED",token)
-            turnstileToken = token;
-        }
-        function handleSubmit(event) {
-            event.preventDefault()
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <script
+            src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+            async
+            defer
+        ></script>
+    </head>
 
-            const email = document.getElementById('email').value
+    <body>
+        <script>
+            let turnstileToken;
+            function handleTurnstileCallback(token) {
+                console.log("TURNSTYLE PASSED", token);
+                turnstileToken = token;
+            }
 
-            fetch('http://localhost:3000/add-new-email', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email,
-                    turnstileToken
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                console.log(data)
-            })
-        }
-    </script>
-</body>
+            function showFormErrorMessage(message) {
+                const errorMessage = document.getElementById("error-message");
+                errorMessage.textContent = message;
+                errorMessage.style.display = "block";
+            }
+
+            function onFormSuccess() {
+                // // reset the captcha
+                // turnstile.reset();
+                // // reset the form
+                // document.getElementById("email").value = "";
+                // document.getElementById("error-message").style.display = "none";
+
+                // replace the form with a success state
+                document.getElementById("form-element").style.display = "none";
+                document.getElementById("success-message").style.display =
+                    "block";
+            }
+
+            async function handleSubmit(event) {
+                event.preventDefault();
+
+                const email = document.getElementById("email").value;
+
+                // validate
+                // email is validated by input element
+                if (!email) {
+                    showFormErrorMessage("please enter an email");
+                    return;
+                }
+                if (!turnstileToken) {
+                    showFormErrorMessage("please complete the captcha");
+                    return;
+                }
+
+                const res = await fetch("http://localhost:3000/add-new-email", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        email,
+                        turnstileToken,
+                    }),
+                });
+
+                console.log("submitted form", res);
+                console.log(res.status);
+                if (res.status !== 200 && res.status !== 201) {
+                    console.log(
+                        "error adding email:",
+                        res.status,
+                        await res.text()
+                    );
+
+                    if (res.status === 401) {
+                        showFormErrorMessage(
+                            "captcha likely invalid, please try again"
+                        );
+                    } else {
+                        showFormErrorMessage(
+                            "server did not accept your sign up, try reloading the page"
+                        );
+                    }
+                    return;
+                }
+
+                // otherwise we have a 200 aka success
+                // for now we just show a success message
+                // other possibily is that email was already added
+                onFormSuccess();
+            }
+        </script>
+        <form onsubmit="handleSubmit(event)" id="form-element">
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="email" required />
+            <div
+                class="cf-turnstile"
+                data-sitekey="0x4AAAAAAA8kcALKDe_QHw5b"
+                data-callback="handleTurnstileCallback"
+            ></div>
+            <div id="error-message" style="display: none; color: red"></div>
+            <input type="submit" value="Submit" />
+        </form>
+        <div
+            id="success-message"
+            style="display: none; color: green; font-size: 24px"
+        >
+            success!
+        </div>
+    </body>
 </html>
